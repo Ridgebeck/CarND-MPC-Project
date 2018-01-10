@@ -6,6 +6,9 @@
 
 using namespace std;
 
+double deg2rad(double x);
+double rad2deg(double x);
+
 class MPC {
  public:
   MPC();
