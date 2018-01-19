@@ -39,7 +39,7 @@ size_t v_start = psi_start + N;
 size_t cte_start = v_start + N;
 size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
-size_t a_start = delta_start + N;
+size_t a_start = delta_start + N - 1;
 
 
 class FG_eval {
@@ -59,7 +59,7 @@ class FG_eval {
     // initilize fg[0] with starting values for cte, epsi, and v
     for (int i = 0; i < N; i++)
     {
-      fg[0] += 2000 * CppAD::pow(vars[cte_start + i] - ref_cte, 2);
+      fg[0] += 200 * CppAD::pow(vars[cte_start + i] - ref_cte, 2);
       fg[0] += 2000 * CppAD::pow(vars[epsi_start + i] - ref_epsi, 2);
       fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2);
     }
@@ -74,7 +74,7 @@ class FG_eval {
     // initilize fg[0] with starting values for delta and a
     for (int i = 0; i < N - 2; i++)
     {
-      fg[0] += 200 * CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+      fg[0] += 2000 * CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
       fg[0] += 10 * CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
     }
 
@@ -138,12 +138,12 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
   // read in values from state vector
-  double x = state[0];
-  double y = state[1];
-  double psi = state[2]; 
-  double v = state[3];
-  double cte = state[4];
-  double epsi = state[5];
+  const double x = state[0];
+  const double y = state[1];
+  const double psi = state[2]; 
+  const double v = state[3];
+  const double cte = state[4];
+  const double epsi = state[5];
 
 
   // TODO: Set the number of model variables (includes both states and inputs).

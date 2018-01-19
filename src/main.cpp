@@ -165,7 +165,7 @@ int main() {
           double Lf = 2.67;
 
           // calculate steering and throttle values
-          steer_value = vars[0]/(deg2rad(25)*Lf);
+          steer_value = vars[0]/(deg2rad(25)); //*Lf);
           throttle_value = vars[1];
 
 
