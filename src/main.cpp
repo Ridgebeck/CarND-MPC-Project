@@ -77,7 +77,7 @@ int main() {
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
     string sdata = string(data).substr(0, length);
-    cout << sdata << endl;
+    // cout << sdata << endl;
     if (sdata.size() > 2 && sdata[0] == '4' && sdata[1] == '2') {
       string s = hasData(sdata);
       if (s != "") {
@@ -98,6 +98,9 @@ int main() {
 
           // TODO:
 
+          // define distance from front axis to COG
+          double Lf = 2.67;
+
           // read in steering angle and throttle value
           double steer_value = j[1]["steering_angle"];
           double throttle_value = j[1]["throttle"];
@@ -107,11 +110,11 @@ int main() {
           {
             // set the car's current position as (0/0) reference
             double shift_x = ptsx[i] - px;
-            double shift_y = ptsx[i] - py;
+            double shift_y = ptsy[i] - py;
 
             // set current direction of car as psi=0 reference / rotate all of the points accordingly
             ptsx[i] = (shift_x * cos(0 - psi) - shift_y * sin(0-psi));
-            ptsx[i] = (shift_x * sin(0 - psi) + shift_y * cos(0-psi));
+            ptsy[i] = (shift_x * sin(0 - psi) + shift_y * cos(0-psi));
           }
 
           // convert double vector into Eigen::VectorXd
@@ -123,13 +126,28 @@ int main() {
           // fit a third order polynomial to the x and y vectors
           auto coeffs = polyfit(ptsx_transform, ptsy_transform, 3);
 
-          // calculate errors cte and epsi
-          double cte = polyeval(coeffs, 0);
-          double epsi = -atan(coeffs[1]);
+          // calculate initial state
+          const double x0 = 0;
+          const double y0 = 0;
+          const double psi0 = 0;
+          const double cte0 = polyeval(coeffs, 0);
+          const double epsi0 = -atan(coeffs[1]);
+
+          // actuator delay in seconds
+          const double delay = 0.1;
+
+          // State after delay.
+          double x_delay = x0 + (v * cos(psi0) * delay);
+          double y_delay = y0 + (v * sin(psi0) * delay);
+          double psi_delay = psi0 - (v * steer_value * delay / Lf);
+          double v_delay = v + throttle_value * delay;
+          double cte_delay = cte0 + (v * sin(epsi0) * delay);
+          double epsi_delay = epsi0 - (v * atan(coeffs[1]) * delay / Lf);
 
           // define state vector
           Eigen::VectorXd state(6);
-          state << 0, 0, 0, v, cte, epsi;
+          //state << x0, y0, psi0, v, cte0, epsi0;
+          state << x_delay, y_delay, psi_delay, v_delay, cte_delay, epsi_delay;
 
           // pass state and coefficients to mpc 
           auto vars = mpc.Solve(state, coeffs);
@@ -161,11 +179,9 @@ int main() {
               mpc_y_vals.push_back(vars[i]);
           }
 
-          // define distance from front axis to COG
-          double Lf = 2.67;
 
           // calculate steering and throttle values
-          steer_value = vars[0]/(deg2rad(25)); //*Lf);
+          steer_value = vars[0]/(deg2rad(25)*Lf);
           throttle_value = vars[1];
 
 
@@ -175,8 +191,8 @@ int main() {
           //msgJson["steering_angle"] = steer_value;
           //msgJson["throttle"] = throttle_value;
 
-          msgJson["steering_angle"] = vars[0]/(deg2rad(25)*Lf);
-          msgJson["throttle"] = vars[1];
+          msgJson["steering_angle"] = steer_value; //vars[0]/(deg2rad(25)*Lf);
+          msgJson["throttle"] = throttle_value; //vars[1];
 
           //Display the MPC predicted trajectory 
           //vector<double> mpc_x_vals;
@@ -200,7 +216,8 @@ int main() {
 
 
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
+          //std::cout << msg << std::endl;
+
           // Latency
           // The purpose is to mimic real driving conditions where
           // the car does actuate the commands instantly.
@@ -210,6 +227,7 @@ int main() {
           //
           // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
           // SUBMITTING.
+
           this_thread::sleep_for(chrono::milliseconds(100));
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
