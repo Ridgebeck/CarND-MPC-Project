@@ -21,7 +21,7 @@ The values for N and dt were chosen as 10 and 0.1 based on the recommendation fr
 
 The waypoints are transformed into the vehicle space (perspective from the vehicle) to simplify the process to fit the polynomial to the waypoints. The vehicles position is now located at the origin (x and y value is 0) and the orientation angle was set to be 0 as well.
 
-- **Model Predictive Control with Latency**: *The student implements Model Predictive Control that handles a 100 millisecond latency. Student provides details on how they deal with latency.*
+- *The student implements Model Predictive Control that handles a 100 millisecond latency. Student provides details on how they deal with latency.*
 
 I first removed the 100ms latency and started tuning the cost function of the model. For that I increased the cte penalty to get a responsive behavior, but had to be careful to not overshoot and oscillate (I was getting motion sick just by looking at it). I kept the penalty for the actuator parameters low as I wanted the model to be more reactive to the other values. Increasing the values for epsi and delta helped to smoothen out the controls and get a responsive behavior with minimum overshooting and oscillation. After adding a 100ms waiting time to simulate the latency in the system the model had significant problems in the tight turns and started again to oscillate, especially after exiting the curves. I added therefore a delay time in the calculations to compensate for the latency. The code can be found in main.cpp, line 139 to 145.
 
