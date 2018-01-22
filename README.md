@@ -1,3 +1,31 @@
+# Udacity Self-Driving Car Engineer Nanodegree Program
+# *Model Predictive Controller (MPC) Project*
+
+
+## Rubric Points
+
+- *Student describes their model in detail. This includes the state, actuators and update equations.*
+
+Student describes their model in detail. This includes the state, actuator and update equations.
+The kinematic model considers the vehicle's position (in x and y coordinates), the orientation angle *psi*, velocity *v*, the cross-track error *cte*, and the orientation error *epsi*.
+The outputs are acceleration *a* and steering angle *delta*, which are also called actuator outputs. The model combines the state and actuator parameters from the previous timestep to calculate the values of the current timestep. The following equations are used to achieve that:
+
+
+![equations](./equations.png)
+
+- *Student discusses the reasoning behind the chosen N (timestep length) and dt (elapsed duration between timesteps) values. Additionally the student details the previous values tried.*
+
+The values for N and dt were chosen as 10 and 0.1 based on the recommendation from the Udacity lessons. I experimented with different values, but achieved the best results with the values above. I tried to increase or decrease the total time (*N x dt*) to look further ahead into the future or even less than a second. Looking further ahead did not lead to a significant information gain, but needed longer to calculate. Less than a second seemed not to be enough information. A value between 0.75s and 1.5s seemed to work. The resolution of *N = 10 steps* also seemed to be a good compromise to have a detailed enough polynomial while not consuming too much calculating power.
+
+- *A polynomial is fitted to waypoints. If the student preprocesses waypoints, the vehicle state, and/or actuators prior to the MPC procedure it is described.*
+
+The waypoints are transformed into the vehicle space (perspective from the vehicle) to simplify the process to fit the polynomial to the waypoints. The vehicles position is now located at the origin (x and y value is 0) and the orientation angle was set to be 0 as well.
+
+- **Model Predictive Control with Latency**: *The student implements Model Predictive Control that handles a 100 millisecond latency. Student provides details on how they deal with latency.*
+
+I first removed the 100ms latency and started tuning the cost function of the model. For that I increased the cte penalty to get a responsive behavior, but had to be careful to not overshoot and oscillate (I was getting motion sick just by looking at it). I kept the penalty for the actuator parameters low as I wanted the model to be more reactive to the other values. Increasing the values for epsi and delta helped to smoothen out the controls and get a responsive behavior with minimum overshooting and oscillation. After adding a 100ms waiting time to simulate the latency in the system the model had significant problems in the tight turns and started again to oscillate, especially after exiting the curves. I added therefore a delay time in the calculations to compensate for the latency. The code can be found in main.cpp, line 139 to 145.
+
+
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
 
