@@ -142,7 +142,7 @@ int main() {
           double psi_delay = psi0 - (v * steer_value * delay / Lf);
           double v_delay = v + throttle_value * delay;
           double cte_delay = cte0 + (v * sin(epsi0) * delay);
-          double epsi_delay = epsi0 - (v * atan(coeffs[1]) * delay / Lf);
+          double epsi_delay = epsi0 - (v * steer_value * delay / Lf);
 
           // define state vector
           Eigen::VectorXd state(6);
